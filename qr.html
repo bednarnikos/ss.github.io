@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>pObywatel – Kod QR</title>
+    <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
+    <link rel="stylesheet" href="assets/main.css">
+    <link rel="icon" href="images/otM5jOA.png" type="image/png">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+    <style>
+        body {
+            background-color: #f6f8ff;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #1a1a1a;
+        }
+
+        .container {
+            padding: 30px;
+        }
+
+        .main_title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .description {
+            color: #555;
+            margin-bottom: 25px;
+        }
+
+        .action_grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .action {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            transition: 0.15s;
+            cursor: pointer;
+        }
+
+        .action:hover {
+            background: #f1f4ff;
+        }
+
+        .action_left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .action_image {
+            width: 36px;
+            height: 36px;
+        }
+
+        .action_title {
+            font-size: 16px;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .action_subtitle {
+            font-size: 13px;
+            color: #777;
+            margin: 0;
+        }
+
+        .arrow {
+            width: 18px;
+            opacity: 0.5;
+        }
+
+        /* MODAL z QR */
+        #qr_modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 999;
+            padding: 40px 20px 120px;
+        }
+
+        .qr_title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .qr_subtitle {
+            font-size: 14px;
+            color: #555;
+            max-width: 320px;
+            margin: 0 auto 20px;
+            line-height: 1.4;
+        }
+
+        #qrcode {
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px auto;
+            width: 180px;
+            height: 180px;
+        }
+
+        .code-number {
+            font-size: 32px;
+            font-weight: 600;
+            color: #1a1a1a;
+            letter-spacing: 2px;
+        }
+
+        .expire-text {
+            font-size: 13px;
+            color: #777;
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            width: 80%;
+            height: 4px;
+            background-color: #e6e6e6;
+            border-radius: 2px;
+            margin: 20px auto;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 100%;
+            height: 100%;
+            background-color: #0057ff;
+            transition: width 1s linear;
+        }
+
+        #close_qr {
+            background: none;
+            border: none;
+            color: #0057ff;
+            font-size: 16px;
+            margin-top: 30px;
+            cursor: pointer;
+        }
+
+        .flags {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 25px;
+        }
+
+        .flags img {
+            width: 42px;
+            border-radius: 5px;
+        }
+
+        .bottom_bar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: #fff;
+            border-top: 1px solid #d8d8d8;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+        }
+
+        .bottom_element_grid {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .bottom_element_text.open {
+            color: #0057ff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <p class="main_title">Kod QR</p>
+        <p class="description">Wybierz, co chcesz zrobić</p>
+
+        <div class="action_grid">
+            <div class="action" id="scan_qr">
+                <div class="action_left">
+                    <img class="action_image" src="images/Pfan6Qa.png">
+                    <div>
+                        <p class="action_title">Zeskanuj kod QR</p>
+                        <p class="action_subtitle">Zaloguj się lub potwierdź swoje dane.</p>
+                    </div>
+                </div>
+                <img class="arrow" src="images/2aN0vJE.png">
+            </div>
+
+            <div class="action" id="show_qr">
+                <div class="action_left">
+                    <img class="action_image" src="images/YJpEaiC.png">
+                    <div>
+                        <p class="action_title">Pokaż kod QR</p>
+                        <p class="action_subtitle">Sprawdź dokument innej osoby.</p>
+                    </div>
+                </div>
+                <img class="arrow" src="images/2aN0vJE.png">
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL QR -->
+    <div id="qr_modal">
+        <p class="qr_title">Pokaż kod QR</p>
+        <p class="qr_subtitle">Poproś osobę, której przekazujesz dokument, aby zeskanowała lub przepisała ten kod w swojej aplikacji mObywatel.</p>
+
+        <div id="qrcode"></div>
+        <div class="code-number" id="codeNumber">000000</div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <p class="expire-text" id="expireText">Kod wygaśnie za: 3 min 00 sek</p>
+
+        <div class="flags">
+            <img src="images/gzot1Pt.gif" alt="Flaga Polski">
+            <img src="images/R5yccCK.gif" alt="Godło RP">
+        </div>
+
+        <button id="close_qr">← Wróć</button>
+    </div>
+
+    <!-- DOLNY PASEK -->
+<div class="bottom_bar">
+    <div class="bottom_element_grid">
+        <img src="2eKl73o.png" width="24" height="24" alt="Pulpit">
+        <p class="bottom_element_text">Pulpit</p>
+    </div>
+    <div class="bottom_element_grid">
+        <img src="sltb5a0.png" width="24" height="24" alt="Dokumenty">
+        <p class="bottom_element_text">Dokumenty</p>
+    </div>
+    <div class="bottom_element_grid">
+        <img src="3Ft4ULN.png" width="24" height="24" alt="Usługi">
+        <p class="bottom_element_text">Usługi</p>
+    </div>
+    <div class="bottom_element_grid">
+        <img src="P6F91tI.png" width="24" height="24" alt="Kod QR">
+        <p class="bottom_element_text open">Kod QR</p>
+    </div>
+    <div class="bottom_element_grid">
+        <img src="ECjKGrW.png" width="24" height="24" alt="Więcej">
+        <p class="bottom_element_text">Więcej</p>
+    </div>
+</div>
+
+
+    <script>
+        const showQR = document.getElementById('show_qr');
+        const modal = document.getElementById('qr_modal');
+        const closeQR = document.getElementById('close_qr');
+        const qrDiv = document.getElementById("qrcode");
+        const codeNumber = document.getElementById("codeNumber");
+        const progressFill = document.getElementById("progressFill");
+        const expireText = document.getElementById("expireText");
+
+        let timeLeft = 180;
+        let timer;
+
+        showQR.addEventListener('click', () => {
+            modal.style.display = 'flex';
+            generateQR();
+        });
+
+        closeQR.addEventListener('click', () => {
+            modal.style.display = 'none';
+            clearInterval(timer);
+        });
+
+        function generateQR() {
+            qrDiv.innerHTML = "";
+            const randomCode = Math.floor(100000 + Math.random() * 900000);
+            const qrData = "pObywatel-" + randomCode;
+
+            new QRCode(qrDiv, {
+                text: qrData,
+                width: 180,
+                height: 180,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            codeNumber.textContent = randomCode;
+            timeLeft = 180;
+            updateExpireText();
+            updateProgressBar();
+            clearInterval(timer);
+            timer = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            updateExpireText();
+            updateProgressBar();
+            if (timeLeft <= 0) {
+                generateQR();
+            }
+        }
+
+        function updateExpireText() {
+            const min = Math.floor(timeLeft / 60);
+            const sec = timeLeft % 60;
+            expireText.textContent = `Kod wygaśnie za: ${min} min ${sec < 10 ? "0" + sec : sec} sek`;
+        }
+
+        function updateProgressBar() {
+            const progress = (timeLeft / 180) * 100;
+            progressFill.style.width = progress + "%";
+        }
+    </script>
+</body>
+</html>
